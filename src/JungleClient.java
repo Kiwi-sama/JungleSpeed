@@ -10,8 +10,7 @@ class JungleClient  {
         // Classe anonyme implementant une interface
         javax.swing.SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                
-                /*JungleIG ig =*/ new JungleIG();
+                JungleIG ig = new JungleIG();
             }
         });
     }

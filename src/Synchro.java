@@ -12,6 +12,7 @@ public class Synchro
     public synchronized void attendreDemandeConnexion(){
         while (!demandeConnexion){
             try {
+                
                 wait();
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block

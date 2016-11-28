@@ -13,14 +13,13 @@ public class ThreadCom implements Runnable{
         // doivent être réalisées via la méthode invokeLater() de la classe SwingUtilities
         sync.attendreDemandeConnexion();
         
+        //ici créer socket && protocole communication
+        
         javax.swing.SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 
                 ig.setInitPanel();
             }
         });
-        
-        
-        
     }
 }
