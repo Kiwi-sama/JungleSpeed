@@ -35,7 +35,7 @@ public class JungleIG extends JFrame  {
     private JButton butConnect;
     
     private JPanel panInit;
-    private JTextArea textInfoInit;
+    public JTextArea textInfoInit;
     private JButton butListParty;
     private JButton butCreateParty;
     private JSpinner spinNbPlayer;
@@ -259,6 +259,10 @@ public class JungleIG extends JFrame  {
     
     public int getNombreJoueursCreationPartie(){
         return (int)this.spinNbPlayer.getValue();
+    }
+    
+    public String getIdPartieARejoindre(){
+        return this.textJoin.getText();
     }
     
     /* définition de la classe interne ImpActionListener,

@@ -10,6 +10,8 @@ public class Synchro
     private boolean demandeAction;
     private String nomAction;
     
+    private boolean partieCommence;
+    
     private boolean wantToQuit;
     
     public Synchro(){
@@ -18,6 +20,8 @@ public class Synchro
         
         demandeAction = false;
         nomAction = "";
+        
+        partieCommence = false;
         
         wantToQuit = false;
     }
@@ -32,18 +36,6 @@ public class Synchro
             }
         }
         demandeConnexion = false;
-    }
-    
-    public synchronized void attendreDemandeAction(){
-        while(!demandeAction){
-            try{
-                wait();
-            }
-            catch (InterruptedException e) {
-                System.out.println("Attente demande d'action error");
-                e.printStackTrace();
-            }
-        }
     }
     
     public synchronized void signalerDemandeConnexion(){
@@ -63,8 +55,21 @@ public class Synchro
         return this.estConnecte;
     }
     
+    public synchronized void attendreDemandeAction(){
+        while(!demandeAction){
+            try{
+                wait();
+            }
+            catch (InterruptedException e) {
+                System.out.println("Attente demande d'action error");
+                e.printStackTrace();
+            }
+        }
+    }
+    
     public synchronized void SignalerdemandeAction(){
         this.demandeAction = true;
+        notify();
     }
     
     public synchronized void setDemandeActionFaux(){
@@ -82,6 +87,29 @@ public class Synchro
     public synchronized String getNomAction(){
         return this.nomAction;
     }
+    
+    public synchronized void attendreDebutPartie(){
+        while(!partieCommence){
+            try{
+                System.out.println("J'attends le début de la partie");
+                wait();
+            }
+            catch (InterruptedException e) {
+                System.out.println("Attente demande d'action error");
+                e.printStackTrace();
+            }
+        }
+        partieCommence=false;
+    } 
+    
+    public synchronized void signalerPartieCommence(){
+        partieCommence = true;
+        notify();;
+    }
+    
+    
+    
+    
     
     public synchronized void setWantToQuit(){
         this.wantToQuit = true;

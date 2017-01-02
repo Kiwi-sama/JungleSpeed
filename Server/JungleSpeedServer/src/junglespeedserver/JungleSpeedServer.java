@@ -3,8 +3,6 @@ package junglespeedserver;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class JungleSpeedServer {
     public static void main(String[] args) {
@@ -13,10 +11,10 @@ public class JungleSpeedServer {
         Socket sockComm = null;
         int portServ = 4000;
         
-        ArrayList<String> joueurs = new ArrayList<String>();
-        ArrayList<Partie> parties = new ArrayList<Partie>();
+        Game game;
         
         //Création du serveur
+
         try{
             sockConn = new ServerSocket(portServ);
         }
@@ -25,13 +23,14 @@ public class JungleSpeedServer {
             System.exit(1) ;
         }
         
+        game = new Game();
+        
         try{
             while(true){
                 System.out.println("Attente clients");
-                System.out.println("Total psuedo : "+joueurs.size());
                 sockComm = sockConn.accept();
                 System.out.println("Nouveau client !");
-                JungleServerThread t = new JungleServerThread(sockComm, joueurs, parties);
+                JungleServerThread t = new JungleServerThread(sockComm, game);
                 t.start();   
             }
         }

@@ -17,7 +17,10 @@ public class ThreadCom implements Runnable{
     private JungleIG ig;
     private Synchro sync;
     private Socket sockComm = null;
-    String pseudo = "";
+    
+    private String pseudo;
+    private int idDansPartie;
+    
     
     private ObjectOutputStream oos = null;
     private ObjectInputStream ois = null;
@@ -30,20 +33,12 @@ public class ThreadCom implements Runnable{
     public  ThreadCom(Synchro s, JungleIG i){
         ig = i;
         sync = s;
+        pseudo = "";
+        idDansPartie = -1;
     }
     
     
     public void run(){
-        // Dans cette méthode run(), toutes les modifications de l'interface graphique
-        // doivent être réalisées via la méthode invokeLater() de la classe SwingUtilities
-        
-        /*javax.swing.SwingUtilities.invokeLater( new Runnable() {
-        public void run() {
-        
-        ig.setInitPanel();
-        }
-        });*/
-        
         String ipServ = "";
         int portServ = 4000;
         
@@ -127,27 +122,78 @@ public class ThreadCom implements Runnable{
             
             do{
                 sync.attendreDemandeAction();
+                Request request = null;
                 System.out.println("action demandée "+sync.getNomAction());
                 switch (sync.getNomAction()) {
                     case "CREATE":
+                        // Création et envoie de la requête/ 
                         System.out.println("Création d'une partie");
+                        System.out.println("Création de la requête");
                         int nbJoueursCreationPartie = ig.getNombreJoueursCreationPartie();
-                        Request request = new Request("CREATE", 
+                        request = new Request("CREATE", 
                                 String.valueOf(nbJoueursCreationPartie));
-                        //send request
+                        oos.writeObject(request);
+                        oos.flush();
+                        System.out.println("Requête envoyée");    
+                        boolean partieCree = dis.readBoolean();
+                        // Retour du serveur, traitement 
+                        // Faire rejoindre à ce joueur la partie crée
+                        if (partieCree){
+                            System.out.println("partie crée");
+                            partieLoop();
+                        }
+                        else{
+                            System.out.println("partie non crée");
+                        }
                         break;
+                        
                     case "LIST":
                         System.out.println("Récupération de la liste des parties");
+                        System.out.println("Création de la requête");
+                        request = new Request("LIST", "");
+                        oos.writeObject(request);
+                        oos.flush();
+                        System.out.println("Requête envoyée");    
+                        String infoParties = dis.readUTF();
+                        javax.swing.SwingUtilities.invokeLater(new Runnable(){
+                            public void run(){
+                                ig.textInfoInit.setText("");
+                                ig.textInfoInit.setText(infoParties);
+                                ig.pack();
+                            }
+                        });
+                        System.out.println("Info parties affichés");
                         break;
+                        
                     case "JOIN":
                         System.out.println("Rejoindre une partie");
+                        String idPartieaRejoindre = ig.getIdPartieARejoindre();
+                        request = new Request("JOIN", idPartieaRejoindre);
+                        oos.writeObject(request);
+                        oos.flush();
+                        System.out.println("requête envoyée");
+                        boolean estDansPartie = dis.readBoolean();
+                        if (estDansPartie){
+                            partieLoop();
+                        }
+                        else{
+                            javax.swing.SwingUtilities.invokeLater(new Runnable(){
+                                public void run(){
+                                    ig.textInfoInit.setText("");
+                                    ig.textInfoInit.setText("Erreur, ne peut pas rejoindre la partie n°"+idPartieaRejoindre);
+                                    ig.pack();
+                                }
+                            });
+                            System.out.println("Erreur, ne peut pas rejoindre la partie n°"+idPartieaRejoindre);
+                        }
                         break;
+                    
                     default:
                         System.out.println("Action demandée imcomprise");
-                        sync.setNomAction("");
-                        sync.setDemandeActionFaux();
                         break;
                 }
+                sync.setDemandeActionFaux();
+                sync.setNomAction("");
             }while(!sync.getWantToQuit());
             
         }
@@ -182,6 +228,25 @@ public class ThreadCom implements Runnable{
                 e.printStackTrace();
             }
         }
-        
     }
+    
+    public void partieLoop() throws IOException{
+        //recuperation de l'id du joueur au sein de la partie.
+        idDansPartie = dis.readInt();
+        javax.swing.SwingUtilities.invokeLater(new Runnable(){
+            public void run(){
+                ig.setPartyPanel();
+                ig.labelNomJ2.setText(pseudo+" joueur n°"+idDansPartie);
+            }
+        });
+        System.out.println("Attente début de partie");
+        sync.attendreDebutPartie();
+        boolean partieACommencer = false;
+        while(!partieACommencer){
+            partieACommencer = dis.readBoolean();
+            if (partieACommencer)
+                sync.signalerPartieCommence();
+        }
+    }
+    
 }
