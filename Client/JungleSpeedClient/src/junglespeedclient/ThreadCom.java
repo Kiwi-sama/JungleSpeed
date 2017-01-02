@@ -48,6 +48,7 @@ public class ThreadCom implements Runnable{
             // Partie 1
             do{
                 sync.attendreDemandeConnexion();
+                
                 if(sockComm == null){
                     try{
                         sockComm = new Socket(ipServ, portServ);
@@ -59,7 +60,7 @@ public class ThreadCom implements Runnable{
                         dos = new DataOutputStream(new BufferedOutputStream(sockComm.getOutputStream()));
                         dos.flush();
                         dis = new DataInputStream(new BufferedInputStream(sockComm.getInputStream()));
-                        System.out.println("Fulx ok");
+                        System.out.println("Flux ok");
                     }
                     catch(IOException e){
                         System.out.println("Connection erreur "+e.toString());

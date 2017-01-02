@@ -39,6 +39,12 @@ public class Game {
         }
     }
     
+    /**
+     * Crée une partie et l'ajoute à la liste des parties.
+     * @param createur
+     * @param nombreJoueurs
+     * @return 
+     */
     public synchronized Partie creerPartie(Joueur createur, int nombreJoueurs){
         Partie p = new Partie(createur, nombreJoueurs);
         parties.add(p);

@@ -35,6 +35,7 @@ public class JungleServerThread extends Thread {
         this.game = game;
         joueur = null;
         currentPartie = null;
+        
         // Mise à false des étapes
         this.pseudoEnregistre = false;
         this.quitter = false;
@@ -102,7 +103,7 @@ public class JungleServerThread extends Thread {
         do{
                 // Reception pseudo
                 String pseudo = dis.readUTF();
-                System.out.println(this.getName()+" pseudo reçu "+pseudo);
+                debugReport(this.getName()+" pseudo reçu "+pseudo);
                 
                 // Pseudo non present dans la liste des joueurs, on l'ajoute donc
                 // à cette liste et envoie true au client
@@ -163,7 +164,6 @@ public class JungleServerThread extends Thread {
             currentPartie = p;
             debugReport(joueur.pseudo+" à créé la partie "+p.id);
             partieLoop();
-            //- signaler que le joueur quitte la partie et si c'est le dernier, supprimer la partie de game.
         }
         else {
             dos.writeBoolean(false);
@@ -178,7 +178,6 @@ public class JungleServerThread extends Thread {
         Partie p = game.getPartie(idPartie);
         if (p.ajouterJoueur(joueur)){
             debugReport(joueur.pseudo+" à rejoint la partie "+idPartie);
-            //a rejoint la partie
             dos.writeBoolean(true);
             dos.flush();
             currentPartie = p;
@@ -213,6 +212,7 @@ public class JungleServerThread extends Thread {
         boolean stop = false;
         
         while(!stop){
+            
             //on regarde si la partie est terminée
             if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
                     currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){
@@ -239,6 +239,7 @@ public class JungleServerThread extends Thread {
             //On récupére la liste des dernières cartes révélé par les joueurs
             String cartesRevele = currentPartie.getCartesRevele();
             dos.writeUTF(cartesRevele);
+            
             
             if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
                     currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){

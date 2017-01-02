@@ -37,7 +37,7 @@ public class Joueur {
     public void initialisationPartie(Partie partie, int id, ArrayList<Card> pioche){
        this.currentPartie = partie;
        this.id = id;
-       cartesRevele = new CardPacket(pioche);
+       cartesCahee = new CardPacket(pioche);
        cartesRevele = new CardPacket();
     }
     

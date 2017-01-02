@@ -20,7 +20,7 @@ public class Partie {
     private int nbJoueurs;
     List<Joueur> joueurs;
     private CardPacket allCards; // le packet de carte contien les cartes pour tous les joueurs (12*nbJoueurs)
-    private List<Card> underTotem; // cartes sous le totem
+    private CardPacket underTotem; // cartes sous le totem
 
     //Semaphores
     Semaphore semAttenteDebut; //barriere pour attendre le bon nomb de joueur pour commencer la partie
@@ -57,6 +57,7 @@ public class Partie {
     public Partie(Joueur createur, int nbPlayer){
         this.id = Partie.NEXT_PARTIE_ID;
         Partie.NEXT_PARTIE_ID++;
+        
         this.createur = createur;
         this.nbJoueurs = nbPlayer;
         gagnantDeLaPartie = null;
@@ -68,10 +69,13 @@ public class Partie {
         semAttenteRevelCarte = new Semaphore(0);
         nbJoueursAttenteRevelCarte = 0;
         
+        
+        
+        
         state = STATE_BEFORESTART;
         
         joueurs = new ArrayList<Joueur>();
-        underTotem = new ArrayList<Card>();
+        underTotem = new CardPacket();
         aJoue = new ArrayList<Joueur>();
         result = new ArrayList<Integer>();
         
@@ -86,14 +90,14 @@ public class Partie {
      * @param j Joueur à ajouter à la partie.
      * @return 
      */
-    public synchronized boolean ajouterJoueur(Joueur j){
+    public synchronized boolean ajouterJoueur(Joueur joueur){
         if(joueurs.size()==nbJoueurs){
             return false;
         }
         else{
-            joueurs.add(j);
+            joueurs.add(joueur);
             ArrayList<Card> pioche = allCards.Draw(12);
-            j.initialisationPartie(this, joueurs.size(), pioche);
+            joueur.initialisationPartie(this, joueurs.size(), pioche);
             return true;
         }
     }
@@ -288,9 +292,9 @@ public class Partie {
         if(getNbPlaceLibre() > 1)
             return "["+getPartieId()+"] - partie créée par "+createur.pseudo+", reste "+getNbPlaceLibre()+" places disponible";
         else if(getNbPlaceLibre() == 1)
-            return getPartieId()+" - partie créée par "+createur.pseudo+", reste "+getNbPlaceLibre()+" place disponible";
+            return "["+getPartieId()+"] - partie créée par "+createur.pseudo+", reste "+getNbPlaceLibre()+" place disponible";
         else
-           return getPartieId()+" - partie créée par "+createur.pseudo+", Plus de places disponible";
+           return "["+getPartieId()+"] - partie créée par "+createur.pseudo+", Plus de places disponible";
     }
     
 }
