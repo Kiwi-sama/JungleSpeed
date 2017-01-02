@@ -264,6 +264,10 @@ public class Partie {
         return joueur;
     }
     
+    /**
+     * 
+     * @param joueurId 
+     */
     public synchronized void setProchainJoueur(int joueurId){
         
     }
@@ -282,6 +286,12 @@ public class Partie {
         return cartesRevele;
     }
     
+    public synchronized boolean joueurQuittePartie(Joueur joueur){
+        
+        
+        
+        return false;
+    }
     
     /**
      * Retourne un descriptif de la partie.

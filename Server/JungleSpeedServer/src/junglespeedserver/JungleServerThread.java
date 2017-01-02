@@ -112,7 +112,8 @@ public class JungleServerThread extends Thread {
     
     public void initLoop() throws IOException{
         do{
-                // Reception pseudo
+                try{
+                    // Reception pseudo
                 String pseudo = dis.readUTF();
                 
                 // Pseudo non present dans la liste des joueurs, on l'ajoute donc
@@ -131,6 +132,12 @@ public class JungleServerThread extends Thread {
                     dos.writeBoolean(false);
                     dos.flush();
                     System.out.println(this.getName()+" pseudo déjà présent dans la liste.");
+                }
+                }
+                catch(IOException e){
+                    //gestion joueur quitte partie : 
+                    
+                    throw e;
                 }
             }while(!pseudoEnregistre);   
     } 
