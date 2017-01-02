@@ -41,6 +41,13 @@ public class Joueur {
        cartesRevele = new CardPacket();
     }
     
+    public void clearPartie(){
+        currentPartie = null;
+        id = -1;
+        cartesCahee = null;
+        cartesRevele = null;
+    }
+    
     /**
      * Retourne la première carte du tas de cartes caché (l'ajoute au tas de 
      * cartes retournées.

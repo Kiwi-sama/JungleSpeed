@@ -16,18 +16,25 @@ public class Partie {
     //attributs généraux de la partie
     static int NEXT_PARTIE_ID = 1;
     int id;    
-    Joueur createur;
+    private Joueur createur;
+    private Joueur gagnant;
     private int nbJoueurs;
     List<Joueur> joueurs;
     private CardPacket allCards; // le packet de carte contien les cartes pour tous les joueurs (12*nbJoueurs)
     private CardPacket underTotem; // cartes sous le totem
-
+    private int idJoueurProchainTour;
+    
+    
     //Semaphores
-    Semaphore semAttenteDebut; //barriere pour attendre le bon nomb de joueur pour commencer la partie
-    int nbJoueursAttenteDebut; //nombre de threads joueurs atttendant le début de la partie
+    Semaphore semAttenteDebut; 
+    int nbJoueursAttenteDebut; 
 
     Semaphore semAttenteRevelCarte;
     int nbJoueursAttenteRevelCarte;
+    
+    Semaphore semAttendreActionJoueurs;
+    int nbJoueurAttendreActionJoueurs;
+    
     
     //attributs pour les cartes
    
@@ -51,26 +58,24 @@ public class Partie {
     private Joueur gagnantDeLaPartie; // winner of the party (must stay at null until there is effectively a winner)
     private Joueur gagnantDuTour; 
     
-    // attribute to manage the end of the party
-        private int nbLeaveParty; // the number of threads that have currently leaved the party
-    
     public Partie(Joueur createur, int nbPlayer){
         this.id = Partie.NEXT_PARTIE_ID;
         Partie.NEXT_PARTIE_ID++;
         
         this.createur = createur;
+        gagnant = null;
         this.nbJoueurs = nbPlayer;
         gagnantDeLaPartie = null;
-        nbLeaveParty = 0;
-
+        
+        //semaphore
         semAttenteDebut = new Semaphore(0);
         nbJoueursAttenteDebut = 0;
         
         semAttenteRevelCarte = new Semaphore(0);
         nbJoueursAttenteRevelCarte = 0;
         
-        
-        
+        semAttendreActionJoueurs = new Semaphore(0);
+        nbJoueurAttendreActionJoueurs = 0;
         
         state = STATE_BEFORESTART;
         
@@ -82,6 +87,24 @@ public class Partie {
         allCards = new CardPacket(nbJoueurs);
         
         ajouterJoueur(createur);
+        idJoueurProchainTour = createur.id;
+    }
+    
+    public Joueur getGagnant(){
+        return this.gagnant;
+    }
+    
+    public synchronized void setGagnant(Joueur joueur){
+        this.gagnant = joueur;
+    }
+    
+    public int getIdJoueurProchainTour(){
+        return idJoueurProchainTour;
+    }
+    
+    public synchronized void setJoueurProchainTour(int idJoueur){
+        this.idJoueurProchainTour = idJoueur;
+        this.currentJoueur = getJoueur(idJoueur);
     }
     
     /**
@@ -118,10 +141,8 @@ public class Partie {
             //déterminer id premier joueur
             currentJoueurId = rand.nextInt(nbJoueurs);
             currentJoueur = getJoueur(currentJoueurId);
-            
-            
             semAttenteDebut.put(nbJoueurs);
-            System.out.println("La partie commence");
+            debugReport("La partie commence");
         }
         semAttenteDebut.get(1);
     }
@@ -130,17 +151,23 @@ public class Partie {
      * Permet d'attendre que le joueur qui doit piocher ai pioché avant 
      * de continuer.
      */
-    public  void AttendreRevelationCarte(){
+    public void AttendreRevelationCarte(){
         nbJoueursAttenteRevelCarte += 1;
         if (nbJoueursAttenteRevelCarte == nbJoueurs){
             nbJoueursAttenteRevelCarte = 0;
-            
             semAttenteRevelCarte.put(nbJoueurs);
-            System.out.println("tous les joueurs ont attendu que la carte "
-                    + "soit révélé");
         }
         semAttenteRevelCarte.get(1);
     }
+    
+    public void AttendteActionJoueur(){
+        nbJoueurAttendreActionJoueurs += 1;
+        if (nbJoueurAttendreActionJoueurs == nbJoueurs){
+            nbJoueurAttendreActionJoueurs = 0;
+            semAttendreActionJoueurs.put(nbJoueurs);
+        }
+        semAttendreActionJoueurs.get(1);
+    } 
     
     //états de la partie
     /**
@@ -291,6 +318,11 @@ public class Partie {
         
         
         return false;
+    }
+    
+   
+    private void debugReport(String msg) {
+        System.err.println("Partie ["+id+"] - "+msg);
     }
     
     /**

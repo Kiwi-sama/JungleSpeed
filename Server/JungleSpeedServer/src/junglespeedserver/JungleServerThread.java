@@ -112,9 +112,9 @@ public class JungleServerThread extends Thread {
     
     public void initLoop() throws IOException{
         do{
-                try{
-                    // Reception pseudo
+                // Reception pseudo
                 String pseudo = dis.readUTF();
+                
                 
                 // Pseudo non present dans la liste des joueurs, on l'ajoute donc
                 // à cette liste et envoie true au client
@@ -132,12 +132,6 @@ public class JungleServerThread extends Thread {
                     dos.writeBoolean(false);
                     dos.flush();
                     System.out.println(this.getName()+" pseudo déjà présent dans la liste.");
-                }
-                }
-                catch(IOException e){
-                    //gestion joueur quitte partie : 
-                    
-                    throw e;
                 }
             }while(!pseudoEnregistre);   
     } 
@@ -181,6 +175,7 @@ public class JungleServerThread extends Thread {
             currentPartie = p;
             debugReport(joueur.pseudo+" à créé la partie "+p.id);
             partieLoop();
+            clearPartieLoop();
         }
         else {
             dos.writeBoolean(false);
@@ -199,6 +194,7 @@ public class JungleServerThread extends Thread {
             dos.flush();
             currentPartie = p;
             partieLoop();
+            clearPartieLoop();
         }
         else{
             //n'as pas rejoint la partie
@@ -230,45 +226,76 @@ public class JungleServerThread extends Thread {
         
         while(!stop){
             
-            //on regarde si la partie est terminée
-            if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
-                    currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){
-                stop = true;
-                dos.writeUTF("END");
-                dos.flush();
-                return;
+            try {
+                //on regarde si la partie est terminée
+                
+                if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
+                        currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){
+                    stop = true;
+                    informerJoueurFinDePartie();
+                    return;
+                }
+                
+                
+                //on récupére le joueur courant
+                Joueur currentJoueurTour = currentPartie.currentJoueur;
+                
+                //si ce thread est le joueur courant, on révéle une carte puis on
+                //attends
+                if (joueur == currentJoueurTour){
+                    sleep(2000);
+                    currentPartie.revealCard();
+                }
+                
+                //on attends que la carte du tours soit tirée et que tous les
+                //joueurs attendent
+                currentPartie.AttendreRevelationCarte();
+                
+                //On récupére la liste des dernières cartes révélé par les joueurs
+                String cartesRevele = currentPartie.getCartesRevele();
+                dos.writeUTF(cartesRevele);
+                
+                if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
+                        currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){
+                    stop = true;
+                    informerJoueurFinDePartie();
+                    return;
+                }
+                
+                String actionString = dis.readUTF();
+                String[] action = actionString.split(";");
+                currentPartie.AttendteActionJoueur();
+                
+                
             }
-            
-            //on récupére le joueur courant
-            Joueur currentJoueurTour = currentPartie.currentJoueur;
-            
-            //si ce thread est le joueur courant, on révéle une carte puis on
-            //attends
-            if (joueur == currentJoueurTour){
-                sleep(2000);
-                currentPartie.revealCard();
-            }
-            
-            //on attends que la carte du tours soit tirée et que tous les
-            //joueurs attendent
-            currentPartie.AttendreRevelationCarte();
-            
-            //On récupére la liste des dernières cartes révélé par les joueurs
-            String cartesRevele = currentPartie.getCartesRevele();
-            dos.writeUTF(cartesRevele);
-            
-            
-            if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
-                    currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){
-                stop = true;
-                dos.writeUTF("END");
-                dos.flush();
-                return;
-            }
-            
-            
+            catch(IOException e){
+                currentPartie.setState(Partie.STATE_ENDBROKEN);
+                currentPartie.joueurQuittePartie(joueur);
+                throw e;
+            }   
         }
+    }
+    
+    public void clearPartieLoop(){
+        joueur.clearPartie();
+        currentPartie = null;
         
+    }
+    
+    public void informerJoueurFinDePartie() throws IOException{
+        dos.writeUTF("END");
+        dos.flush();
+        
+        if(currentPartie.getCurrentState() == Partie.STATE_ENDWIN){
+            dos.writeUTF("WIN");
+            dos.flush();
+            dos.writeUTF(currentPartie.getGagnant().pseudo);
+            dos.flush();
+        }
+        else{
+            dos.writeUTF("LEAVER");
+            dos.flush();
+        }
     }
     
     private void debugReport(String msg) {
@@ -278,6 +305,5 @@ public class JungleServerThread extends Thread {
         else{
             System.err.println("Thread ["+this.getName()+"] - "+msg);
         }
-        
     }    
 }
