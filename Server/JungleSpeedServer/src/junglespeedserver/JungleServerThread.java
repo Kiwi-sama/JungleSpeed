@@ -70,6 +70,17 @@ public class JungleServerThread extends Thread {
             System.out.println( this.getName()+" IOException");
             System.out.println(e.toString());
             e.printStackTrace();
+            
+            //gestion déconnexion client
+            if (joueur != null){
+                debugReport("A été déco, suppression du joueur de la liste des joueurs");
+                debugReport(game.listerJoueur());
+                this.game.supprimerJoueur(joueur);
+                debugReport(game.listerJoueur());
+            }
+                
+            
+            
         } catch (ClassNotFoundException ex) {
             //Logger.getLogger(JungleServerThread.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(this.getName()+"Class not foud exception");
@@ -103,7 +114,6 @@ public class JungleServerThread extends Thread {
         do{
                 // Reception pseudo
                 String pseudo = dis.readUTF();
-                debugReport(this.getName()+" pseudo reçu "+pseudo);
                 
                 // Pseudo non present dans la liste des joueurs, on l'ajoute donc
                 // à cette liste et envoie true au client
@@ -255,6 +265,12 @@ public class JungleServerThread extends Thread {
     }
     
     private void debugReport(String msg) {
-        System.err.println("Thread ["+this.getName()+"-"+joueur.pseudo+"] - "+msg);
+        if (joueur.pseudo != null){
+            System.err.println("Thread ["+this.getName()+"-"+joueur.pseudo+"] - "+msg);
+        }
+        else{
+            System.err.println("Thread ["+this.getName()+"] - "+msg);
+        }
+        
     }    
 }

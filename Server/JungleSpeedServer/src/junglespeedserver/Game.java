@@ -83,6 +83,19 @@ public class Game {
         }
     }
     
+    public String listerJoueur(){
+        if (joueurs.size() == 0){
+            return "Aucuns joueurs";
+        }
+        else{
+            String msg = "";
+            for(Joueur joueur : joueurs){
+                msg += joueur.pseudo+"\n";
+            }
+            return msg;
+        }
+    }
+    
     /**
      * Supprime de la liste le joueur passer en parametre, retournbe vrai si le
      * joueur est bien supprimé sinon retourne faux.
