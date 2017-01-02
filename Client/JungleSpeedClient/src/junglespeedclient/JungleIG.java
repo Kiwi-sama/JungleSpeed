@@ -46,7 +46,8 @@ public class JungleIG extends JFrame  {
     private JPanel panParty;
     private JTextArea textInfoParty;
     private JTextField textPlay;
-    private JButton butPlay;
+    private JButton butTakeT;
+    private JButton butHandT;
     private JButton butQuit;
     public JLabel labelNomJ2;
     
@@ -129,26 +130,21 @@ public class JungleIG extends JFrame  {
         textInfoParty.setLineWrap(true);
         JScrollPane scroll = new JScrollPane (textInfoParty,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         
-        JPanel panPlay = new JPanel();
-        panPlay.setLayout(new BoxLayout(panPlay, BoxLayout.LINE_AXIS));
-        textPlay = new JTextField("",5);
-        textPlay.setMaximumSize(textPlay.getPreferredSize());
-        panPlay.add(Box.createRigidArea(new Dimension(5,0)));
-        panPlay.add(new JLabel("order: "));
-        panPlay.add(textPlay);
+        // Ajout d'un bouton "prendre le totem" avec son listener
+        butHandT = new JButton("Main Totem");
+        butHandT.addActionListener(listener);
         
-        butPlay = new JButton("Play");
-        // ajout d'un listener à butPlay
-        butPlay.addActionListener(listener);
+        // Ajout d'un bouton "mettre la main sur le totem" avec son listener
+        butTakeT = new JButton("Prendre Totem");
+        butTakeT.addActionListener(listener);
         
-        enableOrder(false);		//pour interdire la saisie et l'envoi d'un ordre.
+        // enableOrder(false);		//pour interdire la saisie et l'envoi d'un ordre.
         
         JPanel panRight = new JPanel();
         panRight.setLayout(new BoxLayout(panRight, BoxLayout.PAGE_AXIS));
         panRight.add(Box.createVerticalGlue());
-        panRight.add(panPlay);
-        panRight.add(Box.createRigidArea(new Dimension(0, 5)));
-        panRight.add(butPlay);
+        panRight.add(butTakeT);
+        panRight.add(butHandT);
         panRight.add(Box.createVerticalGlue());
         
         butQuit = new JButton("quit");
@@ -222,14 +218,14 @@ public class JungleIG extends JFrame  {
     }
     
     //pour interdire/autoriser la saisie et l'envoi d'un ordre.
-    public void enableOrder(boolean state) {
+    /* public void enableOrder(boolean state) {
         textPlay.setEnabled(state);
         butPlay.setEnabled(state);
         
         if (!state) {
             textPlay.setText("");
         }
-    }
+    } */
     
     // pour afficher le JPanel panConn
     public void setConnectionPanel() {
@@ -291,8 +287,12 @@ public class JungleIG extends JFrame  {
                 sync.setNomAction("JOIN");
                 sync.SignalerdemandeAction();
             }
-            else if (e.getSource() == butPlay) {
-                System.out.println("Appui sur butPlay");
+            else if (e.getSource() == butTakeT) {
+                System.out.println("Appui sur TakeTotem");
+                
+            }
+            else if (e.getSource() == butHandT) {
+                System.out.println("Appui sur HandTotem");
                 
             }
             else if (e.getSource() == butQuit) {
