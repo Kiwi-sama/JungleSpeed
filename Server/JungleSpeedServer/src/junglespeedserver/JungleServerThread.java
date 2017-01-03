@@ -263,7 +263,7 @@ public class JungleServerThread extends Thread {
                 }
                 
                 String actionString = dis.readUTF();
-                String[] action = actionString.split(";");
+                debugReport(actionString);
                 
                 currentPartie.AttendteActionJoueur();
                 
