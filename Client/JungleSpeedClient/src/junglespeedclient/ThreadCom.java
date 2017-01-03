@@ -267,6 +267,7 @@ public class ThreadCom implements Runnable{
             //Etape 2 
             long timestamp = System.currentTimeMillis();
             sync.signalerDemandeOrdreJoueur("N");
+            System.out.println("Début Timer 3s");
             while (System.currentTimeMillis()<=timestamp+3000){
                 String ordre = sync.getOrdre();
                 if (!ordre.equals("N")){
@@ -282,6 +283,7 @@ public class ThreadCom implements Runnable{
                     break;
                 }
             }
+            System.out.println("Fin Timer 3s");
             //Etape 4
             String ordre = sync.getOrdre();
             if (ordre.equals("N")){
@@ -293,6 +295,7 @@ public class ThreadCom implements Runnable{
                     }
                 });
                 dos.writeUTF(ordre);
+                System.out.println("Ordre envoyé "+ordre);
                 dos.flush();
             }
             resultaltTour = dis.readUTF();
