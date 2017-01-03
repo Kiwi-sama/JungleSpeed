@@ -14,6 +14,12 @@ public class Synchro
     
     private boolean wantToQuit;
     
+    private boolean attenteEtatPartie;
+    
+    private String ordre;
+    
+    private boolean attenteResultatTour;
+    
     public Synchro(){
         demandeConnexion = false;
         estConnecte = false;
@@ -24,6 +30,12 @@ public class Synchro
         partieCommence = false;
         
         wantToQuit = false;
+        
+        attenteEtatPartie = false;
+        
+        ordre = "N";
+        
+        attenteResultatTour = false;
     }
     
     public synchronized void attendreDemandeConnexion(){
@@ -104,12 +116,57 @@ public class Synchro
     
     public synchronized void signalerPartieCommence(){
         partieCommence = true;
-        notify();;
+        notify();
     }
     
+    public synchronized void attendreReceptionEtatPartie(){
+        while(!attenteEtatPartie){
+            try{
+                System.out.println("j'attends l'état de la partie");
+                wait(); 
+            }
+            catch(InterruptedException e){
+                e.printStackTrace();
+            }
+        }
+        attenteEtatPartie = false;
+    }
     
+    public synchronized void signalerReceptionEtatPartie(){
+        attenteEtatPartie = true;
+        notify();
+    }
     
+   
+    public synchronized void signalerDemandeOrdreJoueur(String ordre){
+        this.ordre = ordre;
+    }
     
+    public String getOrdre(){
+        return ordre;
+    }
+   
+    public synchronized void attendreReceptionResultatTour(){
+        while(!attenteResultatTour){
+            try{
+                System.out.println("J'attends le début de la partie");
+                wait();
+            }
+            catch (InterruptedException e) {
+                System.out.println("Attente demande d'action error");
+                e.printStackTrace();
+            }
+        }
+        attenteResultatTour=false;
+    } 
+    
+    public synchronized void signalerReceptionResultat(){
+        attenteResultatTour = true;
+        notify();
+    }
+    
+    //attenteOrdreJoueur = false;
+     //   ordre = "NE_RIEN_FAIRE";
     
     public synchronized void setWantToQuit(){
         this.wantToQuit = true;

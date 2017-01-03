@@ -44,10 +44,10 @@ public class JungleIG extends JFrame  {
     public JLabel labelNomJ1;
     
     private JPanel panParty;
-    private JTextArea textInfoParty;
+    public JTextArea textInfoParty;
     private JTextField textPlay;
-    private JButton butTakeT;
-    private JButton butHandT;
+    public JButton butTakeT;
+    public JButton butHandT;
     private JButton butQuit;
     public JLabel labelNomJ2;
     
@@ -133,11 +133,11 @@ public class JungleIG extends JFrame  {
         // Ajout d'un bouton "prendre le totem" avec son listener
         butHandT = new JButton("Main Totem");
         butHandT.addActionListener(listener);
-        
+        butHandT.setEnabled(false);
         // Ajout d'un bouton "mettre la main sur le totem" avec son listener
         butTakeT = new JButton("Prendre Totem");
         butTakeT.addActionListener(listener);
-        
+        butTakeT.setEnabled(false);
         // enableOrder(false);		//pour interdire la saisie et l'envoi d'un ordre.
         
         JPanel panRight = new JPanel();
@@ -261,6 +261,8 @@ public class JungleIG extends JFrame  {
         return this.textJoin.getText();
     }
     
+    
+    
     /* définition de la classe interne ImpActionListener,
     tous les boutons des différents JPanel "partagent" le même listener,
     qui est une instance de la classe ImpActionListener.
@@ -289,11 +291,11 @@ public class JungleIG extends JFrame  {
             }
             else if (e.getSource() == butTakeT) {
                 System.out.println("Appui sur TakeTotem");
-                
+                sync.signalerDemandeOrdreJoueur("TT");
             }
             else if (e.getSource() == butHandT) {
                 System.out.println("Appui sur HandTotem");
-                
+                sync.signalerDemandeOrdreJoueur("HT");
             }
             else if (e.getSource() == butQuit) {
                 System.out.println("Appui sur butQuit");

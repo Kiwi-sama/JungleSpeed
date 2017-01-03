@@ -20,7 +20,8 @@ public class ThreadCom implements Runnable{
     
     private String pseudo;
     private int idDansPartie;
-    
+    private String etatPartie;
+    private String resultaltTour;
     
     private ObjectOutputStream oos = null;
     private ObjectInputStream ois = null;
@@ -248,6 +249,71 @@ public class ThreadCom implements Runnable{
             if (partieACommencer)
                 sync.signalerPartieCommence();
         }
+        
+        boolean finDePartie = false;
+        while (!finDePartie){
+            
+            //etape 1-1 attente etat de la partie.
+            sync.attendreReceptionEtatPartie();
+            etatPartie = "";
+            
+            while (etatPartie.equals("")){
+                etatPartie = dis.readUTF();
+                if(!etatPartie.equals(""))
+                    sync.signalerReceptionEtatPartie();
+            }
+            
+            //Etape 1-2 affichage etat de la partie
+            javax.swing.SwingUtilities.invokeLater(new Runnable(){
+                public void run(){
+                    ig.textInfoParty.setText("");
+                    ig.textInfoParty.setText(etatPartie);
+                    ig.butHandT.setEnabled(true);
+                    ig.butTakeT.setEnabled(true);
+                }
+            });
+            
+            //Etape 2 
+            long timestamp = System.currentTimeMillis();
+            sync.signalerDemandeOrdreJoueur("N");
+            while (System.currentTimeMillis()<=timestamp+3000){
+                String ordre = sync.getOrdre();
+                if (!ordre.equals("N")){
+                    //Etape 3
+                    javax.swing.SwingUtilities.invokeLater(new Runnable(){
+                        public void run(){
+                            ig.butHandT.setEnabled(false);
+                            ig.butTakeT.setEnabled(false);
+                        }
+                    });
+                    dos.writeUTF(ordre);
+                    dos.flush();
+                    break;
+                }
+            }
+            //Etape 4
+            String ordre = sync.getOrdre();
+            if (ordre.equals("N")){
+                //Etape 3
+                javax.swing.SwingUtilities.invokeLater(new Runnable(){
+                    public void run(){
+                        ig.butHandT.setEnabled(false);
+                        ig.butTakeT.setEnabled(false);
+                    }
+                });
+                dos.writeUTF(ordre);
+                dos.flush();
+            }
+            
+            
+            sync.attendreReceptionResultatTour();
+            resultaltTour = "";
+            while (resultaltTour.equals("")){
+                resultaltTour = dis.readUTF();
+                if(!resultaltTour.equals(""))
+                    sync.signalerReceptionEtatPartie();
+            }
+        } 
     }
     
 }
