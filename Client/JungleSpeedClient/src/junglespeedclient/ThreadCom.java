@@ -239,30 +239,21 @@ public class ThreadCom implements Runnable{
             public void run(){
                 ig.setPartyPanel();
                 ig.labelNomJ2.setText(pseudo+" joueur n°"+idDansPartie);
+                ig.textInfoParty.setText("Attente début partie");
             }
         });
         System.out.println("Attente début de partie");
-        sync.attendreDebutPartie();
-        boolean partieACommencer = false;
-        while(!partieACommencer){
-            partieACommencer = dis.readBoolean();
-            if (partieACommencer)
-                sync.signalerPartieCommence();
-        }
-        
+        dis.readBoolean();
+        javax.swing.SwingUtilities.invokeLater(new Runnable(){
+            public void run(){
+                ig.textInfoParty.setText("La partie commence");
+            }
+        });
         boolean finDePartie = false;
         while (!finDePartie){
             
             //etape 1-1 attente etat de la partie.
-            sync.attendreReceptionEtatPartie();
-            etatPartie = "";
-            
-            while (etatPartie.equals("")){
-                etatPartie = dis.readUTF();
-                if(!etatPartie.equals(""))
-                    sync.signalerReceptionEtatPartie();
-            }
-            
+            etatPartie = dis.readUTF();            
             //Etape 1-2 affichage etat de la partie
             javax.swing.SwingUtilities.invokeLater(new Runnable(){
                 public void run(){
@@ -313,6 +304,7 @@ public class ThreadCom implements Runnable{
                 if(!resultaltTour.equals(""))
                     sync.signalerReceptionEtatPartie();
             }
+            
         } 
     }
     
