@@ -251,7 +251,7 @@ public class ThreadCom implements Runnable{
         });
         boolean finDePartie = false;
         while (!finDePartie){
-            
+            System.out.println("Début tour de jeu");
             //etape 1-1 attente etat de la partie.
             etatPartie = dis.readUTF();            
             //Etape 1-2 affichage etat de la partie

@@ -268,7 +268,9 @@ public class JungleServerThread extends Thread {
                 
                 currentPartie.AttendteActionJoueur();
                 
-                
+                debugReport("Ici bientôt resumé tour de jeu");
+                dos.writeUTF("Ici bientôt resumé tour de jeu");
+                dos.flush();
             }
             catch(IOException e){
                 currentPartie.setState(Partie.STATE_ENDBROKEN);
