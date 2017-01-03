@@ -270,7 +270,6 @@ public class ThreadCom implements Runnable{
             System.out.println("Début Timer 3s");
             while (System.currentTimeMillis()<=timestamp+3000){
                 String ordre = sync.getOrdre();
-                System.out.println("sync ordre = "+sync.getOrdre());
                 if (!ordre.equals("N")){
                     System.out.println("Ordre diff de N");
                     //Etape 3
