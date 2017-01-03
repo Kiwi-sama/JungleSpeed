@@ -209,10 +209,10 @@ public class Partie {
         cartesRevele = "";
         for(Joueur j : joueurs){
             if (j.cartesRevele.size() > 0){
-                cartesRevele += j.cartesRevele.cartes.get(0) +";";
+                cartesRevele += j.id+","+j.cartesRevele.cartes.get(0) +";";
             }
             else{
-                cartesRevele += ";";
+                cartesRevele += j.id+",X;";
             }
         }
     }

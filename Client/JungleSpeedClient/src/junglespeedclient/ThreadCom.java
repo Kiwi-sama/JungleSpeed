@@ -304,6 +304,7 @@ public class ThreadCom implements Runnable{
                 System.out.println("Ordre N envoyé");
             }
             resultaltTour = dis.readUTF();
+            
         } 
     }
     
