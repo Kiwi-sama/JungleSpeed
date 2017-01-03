@@ -54,9 +54,15 @@ public class Joueur {
      * @return la carte retournée
      */
     public Card revealCard(){
-        Card c = cartesCahee.removeFirst();
-        cartesRevele.addFirst(c);
-        return c;
+        if (cartesCahee.size() > 0 ){
+            Card c = cartesCahee.removeFirst();
+            cartesRevele.addFirst(c);
+            return c;
+        }
+        else{
+            return null;
+        }
+        
     }
     
     /**
