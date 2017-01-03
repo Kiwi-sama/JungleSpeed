@@ -67,6 +67,7 @@ public class JungleServerThread extends Thread {
             
         }
         catch(IOException e){
+            debugReport("IOException");
             System.out.println( this.getName()+" IOException");
             System.out.println(e.toString());
             e.printStackTrace();
@@ -82,14 +83,15 @@ public class JungleServerThread extends Thread {
             
             
         } catch (ClassNotFoundException ex) {
-            //Logger.getLogger(JungleServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            debugReport("ClassNotFoundException");
             System.out.println(this.getName()+"Class not foud exception");
             ex.printStackTrace();
         } catch (InterruptedException ex) {
+            debugReport("InterruptedException");
             Logger.getLogger(JungleServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally{
-            System.out.println(this.getName()+"Finally");
+            debugReport("Dans finally");
             try{
                 if (ois != null)
                     ois.close();
@@ -253,6 +255,7 @@ public class JungleServerThread extends Thread {
                 
                 //On récupére la liste des dernières cartes révélé par les joueurs
                 String cartesRevele = currentPartie.getCartesRevele();
+                debugReport(cartesRevele);
                 dos.writeUTF(cartesRevele);
                 dos.flush();
                 
@@ -268,9 +271,10 @@ public class JungleServerThread extends Thread {
                 currentPartie.IntegrationOrdreJoueur(joueur, clientOrder);
                 currentPartie.AttendteActionJoueur();
                 //analyseResults
-                debugReport("Ici bientôt resumé tour de jeu");
-                dos.writeUTF("Ici bientôt resumé tour de jeu");
+                debugReport(currentPartie.getResultatPartie());
+                dos.writeUTF(currentPartie.getResultatPartie());
                 dos.flush();
+                debugReport("Fin tour");
             }
             catch(IOException e){
                 currentPartie.setState(Partie.STATE_ENDBROKEN);

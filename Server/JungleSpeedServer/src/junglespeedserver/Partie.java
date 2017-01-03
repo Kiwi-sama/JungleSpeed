@@ -37,12 +37,7 @@ public class Partie {
     
     
     //attributs pour les cartes
-   
-    //attributs pour la gestion d'un tour
-    /* NOTE: parmis ces attributs seuls quelques uns doivent être accessibles
-       par les threads, notamment currentPlayer, AllRevealedCards, resultMsg, partywinner
-       vous n'avez donc pas besoin de faire des getters pour tous les attributs.
-     */
+  
     public Joueur currentJoueur; //joueur qui dois rtourner une carte durant le tour
     public int currentJoueurId;
     private Card derniereCarteJouee; 
@@ -78,6 +73,8 @@ public class Partie {
         nbJoueurAttendreActionJoueurs = 0;
         
         state = STATE_BEFORESTART;
+        
+        cartesRevele = "";
         
         joueurs = new ArrayList<Joueur>();
         underTotem = new CardPacket();
@@ -289,8 +286,7 @@ public class Partie {
                     else{
                         result.add(0); // ni premier, ni dernier;
                     }
-                }
-                
+                } 
             }
         }
         else if (derniereCarteJouee.card == 'T'){
@@ -386,6 +382,7 @@ public class Partie {
             //on choisit le prochain joueur
             currentJoueur = erreurs.get(rand.nextInt(erreurs.size()));
             resultMsg += "Prochain joueur "+ currentJoueur.pseudo;
+            this.resultMsg = resultMsg;
         }
         else{
             //si aucun joueur n'a fait d'erreurs
@@ -396,8 +393,79 @@ public class Partie {
                     break;
                 }
             }
+            
+            //si personne ne gagne le tour
+            if(indexGagnant==-1){
+                resultMsg += "Personne n'a gagné le tour\n";
+                currentJoueur = joueurs.get(currentJoueur.id%nbJoueurs);
+                resultMsg += "\n prochain joueur "+currentJoueur.pseudo;
+            }
+            else{
+                //si un joueur est gagnant, le resultat dépends de la la dernière carte révélé
+                gagnantDuTour = joueurs.get(indexGagnant);
+                resultMsg += gagnantDuTour.pseudo + " à gagné le tour\n";
+                
+                if (derniereCarteJouee.card == 'T'){
+                    //gagnant à gagné sur Take totem
+                    resultMsg += "Il mets ses cartes sous le totem\n";
+                    underTotem.addCards(gagnantDuTour.cartesRevele.getAllCards());
+                    gagnantDuTour.cartesRevele.clearCardPacket();
+                }
+                else if (derniereCarteJouee.card == 'H'){
+                    //gagnant à gagné sur hand totem
+                    Joueur perdant = perdants.get(0);
+                    resultMsg += "Il donne ses cartes et celles sous le totem à "+perdant.pseudo+"\n";
+                    perdant.takeCards(getCartesGagnant().getAllCards());
+                }
+                else{
+                    //le gagnant gagne car il avait la même carte qu'un autre joueur
+                    //distribue les cartes du gagnants aux perdants
+                    CardPacket tasGagnant = getCartesGagnant();
+                    tasGagnant.melanger();
+                    int nb = (tasGagnant.size()+1)/perdants.size();
+                    for (int i=0;i<perdants.size();i++){
+                        Joueur joueur = perdants.get(i);
+                        if (i < perdants.size()-1){
+                            joueur.takeCards(tasGagnant.Draw(nb));
+                            resultMsg += joueur.pseudo+ " perds son duel avec "+gagnant.pseudo+" il prends "+nb+" cartes.\n";
+                        }
+                        else{
+                            joueur.takeCards(tasGagnant.getAllCards());
+                            resultMsg += joueur.pseudo+" perds son duel avec "+gagnant.pseudo+" il prends "+tasGagnant.size()+"cartes.\n";
+                        }
+                    }
+                }
+                for(Joueur joueur : joueurs){
+                    if(joueur.checkIsWinner()){
+                        resultMsg += joueur.pseudo+" gagne la partie.\n";
+                        setState(STATE_ENDWIN);
+                    }
+                }
+                currentJoueur = perdants.get(rand.nextInt(perdants.size()));
+                resultMsg += "\n Prochain joueur : "+currentJoueur.pseudo;
+                this.resultMsg = resultMsg;
+            }
         }
+        initNouveauTour();
+    }
+    
+    public String getResultatPartie(){
+        return this.resultMsg;
+    }
+    
+    public void initNouveauTour(){
+        aJoue.clear();
+        result.clear();
+        totemTaken = false;
+        totemHand = false;
         
+    }
+    
+    public CardPacket getCartesGagnant(){
+        CardPacket tas = new CardPacket();
+        tas.addCards(gagnant.giveRevealedCards());
+        tas.addCards(underTotem);
+        return tas;
     }
     
     //autres
