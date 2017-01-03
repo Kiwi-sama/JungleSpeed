@@ -254,6 +254,7 @@ public class JungleServerThread extends Thread {
                 //On récupére la liste des dernières cartes révélé par les joueurs
                 String cartesRevele = currentPartie.getCartesRevele();
                 dos.writeUTF(cartesRevele);
+                dos.flush();
                 
                 if (currentPartie.getCurrentState() == Partie.STATE_ENDWIN ||
                         currentPartie.getCurrentState() == Partie.STATE_ENDBROKEN){

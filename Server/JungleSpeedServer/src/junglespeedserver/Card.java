@@ -13,5 +13,10 @@ public class Card {
         else {
             throw new IllegalArgumentException();
         }
-    }    
+    }   
+    
+    @Override
+    public String toString(){
+        return card + "";
+    }
 }
