@@ -295,16 +295,7 @@ public class ThreadCom implements Runnable{
                 dos.writeUTF(ordre);
                 dos.flush();
             }
-            
-            
-            sync.attendreReceptionResultatTour();
-            resultaltTour = "";
-            while (resultaltTour.equals("")){
-                resultaltTour = dis.readUTF();
-                if(!resultaltTour.equals(""))
-                    sync.signalerReceptionEtatPartie();
-            }
-            
+            resultaltTour = dis.readUTF();
         } 
     }
     
