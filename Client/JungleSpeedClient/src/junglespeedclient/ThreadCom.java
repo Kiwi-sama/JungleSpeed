@@ -270,7 +270,9 @@ public class ThreadCom implements Runnable{
             System.out.println("Début Timer 3s");
             while (System.currentTimeMillis()<=timestamp+3000){
                 String ordre = sync.getOrdre();
+                System.out.println("sync ordre = "+sync.getOrdre());
                 if (!ordre.equals("N")){
+                    System.out.println("Ordre diff de N");
                     //Etape 3
                     javax.swing.SwingUtilities.invokeLater(new Runnable(){
                         public void run(){
@@ -280,6 +282,7 @@ public class ThreadCom implements Runnable{
                     });
                     dos.writeUTF(ordre);
                     dos.flush();
+                    System.out.println("Ordre diff de N envoyé");
                     break;
                 }
             }
@@ -288,6 +291,7 @@ public class ThreadCom implements Runnable{
             String ordre = sync.getOrdre();
             if (ordre.equals("N")){
                 //Etape 3
+                System.out.println("ordre = N");
                 javax.swing.SwingUtilities.invokeLater(new Runnable(){
                     public void run(){
                         ig.butHandT.setEnabled(false);
@@ -297,6 +301,7 @@ public class ThreadCom implements Runnable{
                 dos.writeUTF(ordre);
                 System.out.println("Ordre envoyé "+ordre);
                 dos.flush();
+                System.out.println("Ordre N envoyé");
             }
             resultaltTour = dis.readUTF();
         } 
