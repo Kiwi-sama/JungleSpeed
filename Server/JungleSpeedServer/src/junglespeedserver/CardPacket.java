@@ -155,7 +155,7 @@ public class CardPacket {
      * Retourne toutes les cartes du paquet.
      * @return 
      */
-    public List<Card> getAllCards(){
+    public ArrayList<Card> getAllCards(){
         return cartes;
     }
     

@@ -50,8 +50,8 @@ public class Partie {
     
     
     //attributs pour la  gestion du resultat d'un tour
-    private List<Joueur> aJoue; // joueur qui ont déjà jouer ce tour ci
-    private List<Integer> result; // the result of the order of players.
+    private ArrayList<Joueur> aJoue; // joueur qui ont déjà jouer ce tour ci
+    private ArrayList<Integer> result; // the result of the order of players.
     private boolean totemTaken; // if the totem has been taken during the current turn
     private boolean totemHand; // if a player has put his hand on the totem during the current turn
     private String resultMsg; // the message containing the reuslt of the current turn that threads send to their client.
@@ -83,6 +83,9 @@ public class Partie {
         underTotem = new CardPacket();
         aJoue = new ArrayList<Joueur>();
         result = new ArrayList<Integer>();
+        
+        totemHand = false;
+        totemTaken = false;
         
         allCards = new CardPacket(nbJoueurs);
         
@@ -224,7 +227,7 @@ public class Partie {
      * @param j
      * @return 
      */
-    public boolean checkDuplicateCards(Joueur joueur){
+    public boolean checkSameCards(Joueur joueur){
         if (joueur.currentCard()==null){
             return false;
         }
@@ -238,7 +241,164 @@ public class Partie {
         return false;
     }
     
+    /**
+     * Pour le joueur passé en param, et en fonction de l'action indiqué par 
+     * le client vas ajouter le joueur dans le tableau des joueur ayant joué
+     * (ce qui permet de conserver l'ordre de rapidité de réponse) et dans un
+     * tableau d'entier stock au même index le resultat cd ce joueur.
+     * 
+     * Les ordres peuvent être :
+     * N : ne rien faire
+     * TT : prendre le totem
+     * HT : mettre la main sur le totem
+     * 
+     * Les resultats peuvent être :
+     * -2 : le joueur à fait une erreur
+     * -1 : le joueur n'a pas pris le totem quand il devait
+     * 0  : le joueur à bien réagit mais trop tard
+     * 1  : le joueur à gagné le tour
+     * 
+     * Les erreur peuvent être :
+     *  - le joueur ne fait rien alors que la carte révélé était H.
+     *  - le joueur prend le totem alors que la carte révélé était H.
+     *  - le joueur met sa main sur le totem alors que la carte révélé était T.
+     *  - le joueur prends le totem alors qu'il n'avait pas la même carte 
+     * qu'un autre joueur et que la carte révélé n'était ni H, ni T.
+     * 
+     * @param joueur
+     * @param ordre 
+     */
+    public synchronized void IntegrationOrdreJoueur(Joueur joueur, String ordre){
+        aJoue.add(joueur);
+        if (derniereCarteJouee.card == 'H'){
+            if (ordre == "N"){
+                result.add(-2); // le joueur a fait une érreur, il devait HT
+            }
+            else if (ordre == "TT"){
+                result.add(-2); // le joueur a fait une érreur, il devait HT
+            }
+            else if (ordre == "HT"){
+                if (!totemHand){
+                    result.add(1); // il est le premier a HT
+                    totemHand = true;
+                }
+                else{
+                    if (joueurs.size() == nbJoueurs){
+                        result.add(-1); // perdant car dernier a HT
+                    }
+                    else{
+                        result.add(0); // ni premier, ni dernier;
+                    }
+                }
+                
+            }
+        }
+        else if (derniereCarteJouee.card == 'T'){
+            if (ordre == "N"){
+                result.add(-1);//joueur perds mais pas grave
+            }
+            else if (ordre == "TT"){
+                if(!totemTaken){
+                    result.add(1);//joueur premier a TT => gagne
+                    totemTaken = true;
+                }
+                else{
+                    result.add(0);//joueur ni gagnant, ni perdant
+                }
+            }
+            else if (ordre == "HT"){
+                result.add(-2);//joueur erreur devait faire TT
+            }
+        }
+        else{ //cas ou la derniere carte joué n'est ni T ni H
+            if (ordre == "N"){
+                if(checkSameCards(joueur)){
+                    result.add(-1);//joueur perd, devait TT en 1er
+                }
+                else{
+                    result.add(0);//ni perdant ni gagnant car ne devait rien faire
+                }
+            }
+            else if (ordre == "TT"){
+                if (checkSameCards(joueur)){
+                    if (!totemTaken){
+                        result.add(1);//gagne a des carte en commun avec autre joueur et 1er à TT
+                        totemTaken = true;
+                    }
+                    else{
+                        result.add(-1);//perd, n'a pas TT en 1er
+                    }
+                }
+                else{
+                    result.add(-2);//joueur ne devait pas prendre totem => erreur
+                }
+            }
+            else if (ordre == "HT"){
+               result.add(-2);//joueur a fait erreur, mauvaise action
+            }
+        }
+    }
     
+    /**
+     * analyse les resultat de la partie
+     */
+    public synchronized void analyseResultats(){
+        resultMsg = "";
+        ArrayList<Joueur> erreurs = new ArrayList<Joueur>();
+        ArrayList<Joueur> perdants = new ArrayList<Joueur>();
+        for (int i = 0; i<nbJoueurs;i++ ){
+            if(result.get(i)==-2){
+                erreurs.add(aJoue.get(i));
+            }
+            if(result.get(i)==-1){
+                erreurs.add(aJoue.get(i));
+            }
+        }
+        
+        //si au moins un joueur a fait une erreur
+        if (!erreurs.isEmpty()){
+            //les joueurs qui font des erreurs on le pire cas, 
+            //on récupére toutes les cartes révélé de chaque joueurs et sous
+            //le totem pour les distribuer entre les joueurs perdant
+            CardPacket tasErreur = getToutesCartesRevele();
+            tasErreur.melanger();
+            int nb = (tasErreur.size()+1)/erreurs.size();
+            for (int i=0; i<erreurs.size()+1;i++ ){
+                Joueur j = erreurs.get(i);
+                if (i < erreurs.size()-1){
+                    j.takeCards(tasErreur.Draw(nb));
+                    resultMsg += j.pseudo+" à fait une erreur, il prends "+nb+" cartes";
+                }
+                else{
+                    resultMsg += j.pseudo + " à fait une erreur, il prends "+tasErreur.size()+" cartes de tous les joueurs";
+                    j.takeCards(tasErreur.getAllCards());
+                }
+            }
+            
+            //on regarde si quelqu'un à gagné
+            for(Joueur j : joueurs){
+                if(j.checkIsWinner()){
+                    resultMsg += j.pseudo+" à gagné la partie";
+                    setState(STATE_ENDWIN);
+                    return;
+                }
+            }
+            //on choisit le prochain joueur
+            currentJoueur = erreurs.get(rand.nextInt(erreurs.size()));
+            resultMsg += "Prochain joueur "+ currentJoueur.pseudo;
+        }
+        else{
+            //si aucun joueur n'a fait d'erreurs
+            int indexGagnant = -1;
+            for(Integer r : result){
+                if (r==1){
+                    indexGagnant = r;
+                    break;
+                }
+            }
+        }
+        
+    }
     
     //autres
     /**
@@ -308,15 +468,26 @@ public class Partie {
         return this.nbJoueurs-this.joueurs.size();           
     }
     
+    /**
+     * Crée un paquêt a partir de toutes les cartes révélé par tous les joueurs
+     * et celles sous le totem. (Sert quand un joueur fait une erreur)
+     * @return 
+     */
+    public CardPacket getToutesCartesRevele(){
+        CardPacket tas = new CardPacket();
+        for (Joueur joueur : joueurs){
+            tas.addCards(joueur.giveRevealedCards());
+        }
+        tas.addCards(underTotem);
+        return tas;
+    }
+    
     //get set 
     public String getCartesRevele(){
         return cartesRevele;
     }
     
     public synchronized boolean joueurQuittePartie(Joueur joueur){
-        
-        
-        
         return false;
     }
     

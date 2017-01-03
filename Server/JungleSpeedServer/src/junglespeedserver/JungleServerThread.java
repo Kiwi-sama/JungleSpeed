@@ -263,11 +263,11 @@ public class JungleServerThread extends Thread {
                     return;
                 }
                 
-                String actionString = dis.readUTF();
-                debugReport(actionString);
-                
+                String clientOrder = dis.readUTF();
+                debugReport(clientOrder);
+                currentPartie.IntegrationOrdreJoueur(joueur, clientOrder);
                 currentPartie.AttendteActionJoueur();
-                
+                //analyseResults
                 debugReport("Ici bientôt resumé tour de jeu");
                 dos.writeUTF("Ici bientôt resumé tour de jeu");
                 dos.flush();
